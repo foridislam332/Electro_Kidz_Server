@@ -30,9 +30,16 @@ async function run() {
 
         // get all toys
         app.get('/all-toys', async (req, res) => {
-            const cursor = toysCollection.find();
-            const result = await cursor.toArray();
-            res.send(result)
+            const searchTerm = req.query.search;
+            if (searchTerm) {
+                const cursor = toysCollection.find({ name: { $regex: searchTerm, $options: 'i' } });
+                const result = await cursor.toArray();
+                return res.send(result)
+            } else {
+                const cursor = toysCollection.find().limit(20);
+                const result = await cursor.toArray();
+                return res.send(result)
+            }
         })
 
         // get single toy by id
