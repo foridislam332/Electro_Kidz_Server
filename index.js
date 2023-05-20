@@ -34,11 +34,11 @@ async function run() {
             if (searchTerm) {
                 const cursor = toysCollection.find({ name: { $regex: searchTerm, $options: 'i' } });
                 const result = await cursor.toArray();
-                return res.send(result)
+                res.send(result)
             } else {
                 const cursor = toysCollection.find().limit(20);
                 const result = await cursor.toArray();
-                return res.send(result)
+                res.send(result)
             }
         })
 
@@ -57,13 +57,36 @@ async function run() {
             res.send(result)
         })
 
-        // get my toys
+        // get all my toys
         app.get('/my-toys', async (req, res) => {
             const email = req.query.email;
             const query = { email: email }
             const cursor = toysCollection.find(query);
             const result = await cursor.toArray();
-            return res.send(result)
+            res.send(result)
+        })
+
+        // update toys
+        app.patch('/my-toys/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) }
+            const updatedToy = req.body;
+            const updateDoc = {
+                $set: {
+                    name: updatedToy.name,
+                    img: updatedToy.img,
+                    price: updatedToy.price,
+                    rating: updatedToy.rating,
+                    subCategory: updatedToy.subCategory,
+                    quantity: updatedToy.quantity,
+                    des: updatedToy.des,
+                    seller: updatedToy.seller,
+                    email: updatedToy.email,
+                },
+            };
+
+            const result = await toysCollection.updateOne(filter, updateDoc);
+            res.send(result)
         })
 
         // Send a ping to confirm a successful connection
