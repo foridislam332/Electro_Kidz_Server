@@ -31,15 +31,17 @@ async function run() {
         // get all toys
         app.get('/all-toys', async (req, res) => {
             const searchTerm = req.query.search;
+            const limit = req.query.limit || 20;
+
+            let cursor;
             if (searchTerm) {
-                const cursor = toysCollection.find({ name: { $regex: searchTerm, $options: 'i' } });
-                const result = await cursor.toArray();
-                res.send(result)
+                cursor = toysCollection.find({ name: { $regex: searchTerm, $options: 'i' } });
             } else {
-                const cursor = toysCollection.find().limit(20);
-                const result = await cursor.toArray();
-                res.send(result)
+                cursor = toysCollection.find().limit(limit);
             }
+
+            const result = await cursor.toArray();
+            res.send(result);
         })
 
         // get single toy by id
