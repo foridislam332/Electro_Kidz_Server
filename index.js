@@ -43,6 +43,15 @@ async function run() {
             res.send(result);
         })
 
+        // filter by category
+        app.get('/category', async (req, res) => {
+            const category = req.query.category;
+            const query = { subCategory: category };
+            const cursor = toysCollection.find(query).limit(3);
+            const result = await cursor.toArray();
+            res.send(result)
+        })
+
         // get single toy by id
         app.get('/all-toys/:id', async (req, res) => {
             const id = req.params.id;
