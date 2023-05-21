@@ -23,7 +23,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
         const database = client.db('electro_kidz');
         const toysCollection = database.collection('toys');
@@ -31,13 +31,12 @@ async function run() {
         // get all toys
         app.get('/all-toys', async (req, res) => {
             const searchTerm = req.query.search;
-            const limit = req.query.limit || 20;
 
             let cursor;
             if (searchTerm) {
                 cursor = toysCollection.find({ name: { $regex: searchTerm, $options: 'i' } });
             } else {
-                cursor = toysCollection.find().limit(limit);
+                cursor = toysCollection.find().limit(20);
             }
 
             const result = await cursor.toArray();
@@ -59,11 +58,30 @@ async function run() {
             res.send(result)
         })
 
-        // get all my toys
+        // get all my toys and data sorting by price
         app.get('/my-toys', async (req, res) => {
             const email = req.query.email;
+            const sort = req.query.sort;
             const query = { email: email }
-            const cursor = toysCollection.find(query);
+
+            let cursor;
+
+            if (sort === 'low') {
+                cursor = toysCollection.aggregate([
+                    { $match: query },
+                    { $addFields: { priceNumeric: { $toDouble: "$price" } } },
+                    { $sort: { priceNumeric: 1 } }
+                ]);
+            } else if (sort === 'high') {
+                cursor = toysCollection.aggregate([
+                    { $match: query },
+                    { $addFields: { priceNumeric: { $toDouble: "$price" } } },
+                    { $sort: { priceNumeric: -1 } }
+                ]);
+            } else {
+                cursor = toysCollection.find(query);
+            }
+
             const result = await cursor.toArray();
             res.send(result)
         })
